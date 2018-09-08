@@ -6,11 +6,11 @@
 
 #include <kern/monitor.h>
 #include <kern/console.h>
-<<<<<<< HEAD
+
 #include <kern/pmap.h>
 #include <kern/kclock.h>
 
-=======
+
 
 // Test the stack backtrace function (lab 1 only)
 void
@@ -23,7 +23,7 @@ test_backtrace(int x)
 		mon_backtrace(0, 0, 0);
 	cprintf("leaving test_backtrace %d\n", x);
 }
->>>>>>> lab1
+
 
 void
 i386_init(void)
