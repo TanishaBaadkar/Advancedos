@@ -99,6 +99,14 @@ boot_alloc(uint32_t n)
 	//
 	// LAB 2: Your code here.
 
+         if(n!=0)
+        {
+            result=nextfree;
+            nextfree= ROUNDUP((char*) (nextfree+n), PGSIZE);
+            return result;
+         }
+            else if(n==0) return nextfree;
+
 	return NULL;
 }
 
