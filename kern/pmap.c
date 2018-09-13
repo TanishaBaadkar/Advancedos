@@ -180,6 +180,10 @@ mem_init(void)
 	//    - pages itself -- kernel RW, user NONE
 	// Your code goes here:
 
+          boot_map_region(kern_pgdir,UPAGES,PTSIZE,PADDR(pages),PTE_U);
+           boot_map_region(kern_pgdir,KSTACKTOP-KSTKSIZE,KSTKSIZE,PADDR(bootstack),PTE_W);
+           boot_map_region(kern_pgdir,KERNBASE,-KERNBASE,0,PTE_W);
+
 	//////////////////////////////////////////////////////////////////////
 	// Use the physical memory that 'bootstack' refers to as the kernel
 	// stack.  The kernel stack grows down from virtual address KSTACKTOP.
@@ -366,28 +370,22 @@ pgdir_walk(pde_t *pgdir, const void *va, int create)
 	// Fill this function in
 
        
-       int dindex = PDX(va), tindex = PTX(va);
-	//dir index, table index
-	if (!(pgdir[dindex] & PTE_P)) {	//if pde not exist
+      
+
+	if (!(pgdir[PDX(va)] & PTE_P)) {	
 		if (create) {
-			struct PageInfo *pg = page_alloc(ALLOC_ZERO);	//alloc a zero page
+			struct PageInfo *pg = page_alloc(ALLOC_ZERO);	
 			if (!pg) return NULL;	//allocation fails
 			pg->pp_ref++;
-			pgdir[dindex] = page2pa(pg) | PTE_P | PTE_U | PTE_W;	
-			//we should use PTE_U and PTE_W to pass checkings
+			pgdir[PDX(va)] = page2pa(pg) | PTE_P | PTE_U | PTE_W;	
+			
 		} else return NULL;
 	}
-	pte_t *p = KADDR(PTE_ADDR(pgdir[dindex]));
+	pte_t *p = KADDR(PTE_ADDR(pgdir[PDX(va)]));
 
-	//THESE CODE COMMENTED IS NOT NEEDED 
-	// if (!(p[tindex] & PTE_P))	//if pte not exist
-	// 	if (create) {
-	// 		struct PageInfo *pg = page_alloc(ALLOC_ZERO);	//alloc a zero page
-	// 		pg->pp_ref++;
-	// 		p[tindex] = page2pa(pg) | PTE_P;
-	// 	} else return NULL;
+	pte_t *result= p+ PTX(va);
 
-	return p+tindex;
+	return result;
 }
 
 //
@@ -471,11 +469,17 @@ page_lookup(pde_t *pgdir, void *va, pte_t **pte_store)
 {
     pte_t * pte = pgdir_walk(pgdir, va, 0);
 	if(!pte || !(*pte & PTE_P)) return NULL;
+      if(pte)
+{ 
         if(pte_store)
            *pte_store= pte;
-        return pa2page(PTE_ADDR(*pte));
 
+        physaddr_t pa= PTE_ADDR(*pte);
 
+        struct PageInfo * result= pa2page(pa);
+        return result;
+}
+ return NULL;
 }
 
 //
