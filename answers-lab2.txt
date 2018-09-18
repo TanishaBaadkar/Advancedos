@@ -1,0 +1,11 @@
+1. uintptr_t
+
+2. 0xef400000 points to kern_pgdir
+   0xef000000 points to pages
+   0xefc00000 points to bootstack
+   0xefc00000 points to kernel
+
+3. PTE_U is not enabled
+
+4.UPAGES is 4MB, PageInfo=8B, size of page is 4KB so we can have 2GB physical memory
+
