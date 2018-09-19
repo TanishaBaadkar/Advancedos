@@ -9,3 +9,4 @@
 
 4.UPAGES is 4MB, PageInfo=8B, size of page is 4KB so we can have 2GB physical memory
 
+6. after jmp *%eax
