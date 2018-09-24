@@ -162,14 +162,14 @@ mem_init(void)
 	// to initialize all fields of each struct PageInfo to 0.
 	// Your code goes here:
 
-
+     pages=(struct PageInfo*) boot_alloc(npages* sizeof(struct PageInfo));
+        memset(pages,0,npages* sizeof(struct PageInfo));
 
 	//////////////////////////////////////////////////////////////////////
 	// Make 'envs' point to an array of size 'NENV' of 'struct Env'.
 	// LAB 3: Your code here.
 
-        pages=(struct PageInfo*) boot_alloc(npages* sizeof(struct PageInfo));
-        memset(pages,0,npages* sizeof(struct PageInfo));
+    envs= (struct Env *) boot_alloc(sizeof(struct Env) * NENV);   
 
 
 
@@ -196,7 +196,7 @@ mem_init(void)
 	//    - pages itself -- kernel RW, user NONE
 	// Your code goes here:
 
-
+  boot_map_region(kern_pgdir,UPAGES,PTSIZE,PADDR(pages),PTE_U);
 	//////////////////////////////////////////////////////////////////////
 	// Map the 'envs' array read-only by the user at linear address UENVS
 	// (ie. perm = PTE_U | PTE_P).
@@ -205,7 +205,7 @@ mem_init(void)
 	//    - envs itself -- kernel RW, user NONE
 	// LAB 3: Your code here.
 
-          boot_map_region(kern_pgdir,UPAGES,PTSIZE,PADDR(pages),PTE_U);
+          boot_map_region(kern_pgdir,UENVS,PTSIZE,PADDR(envs),PTE_U);
            
            
 
@@ -307,7 +307,7 @@ page_init(void)
 		page_free_list = &pages[i];
 	}
 
-        int extended=(int)ROUNDUP(((char*)pages) + (sizeof(struct PageInfo) * npages) - 0xf0000000, PGSIZE)/ PGSIZE;
+        int extended=(int)ROUNDUP(((char*)envs) + (sizeof(struct Env) * NENV) - 0xf0000000, PGSIZE)/ PGSIZE;
  
          for (i = extended; i < npages; i++) {
 
