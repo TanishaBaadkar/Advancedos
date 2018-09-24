@@ -52,7 +52,7 @@ KERN_BINFILES :=	user/hello \
 			user/faultwrite \
 			user/faultwritekernel
 
-KERN_BINFILES := 
+
 
 
 KERN_OBJFILES := $(patsubst %.c, $(OBJDIR)/%.o, $(KERN_SRCFILES))

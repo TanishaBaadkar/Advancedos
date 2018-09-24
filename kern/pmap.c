@@ -8,7 +8,6 @@
 
 #include <kern/pmap.h>
 #include <kern/kclock.h>
-
 #include <kern/env.h>
 
 
@@ -135,7 +134,7 @@ mem_init(void)
 
 	// Remove this line when you're ready to test this function.
 
-	panic("mem_init: This function is not finished\n");
+	//panic("mem_init: This function is not finished\n");
 
 	//panic("mem_init: This function is not finished\n");
 
@@ -298,9 +297,10 @@ page_init(void)
 	// free pages!
 	size_t i;
 
-	for (i = 0; i < npages; i++) {
-
         pages[0].pp_ref=1;
+	
+
+        
 	for (i = 1; i < npages_basemem; i++) {
 		pages[i].pp_ref = 0;
 		pages[i].pp_link = page_free_list;
