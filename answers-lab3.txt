@@ -1,3 +1,7 @@
 1. Each exception has to be handled in a different way so we cannot have a single handler for all. Protections cannot be provided.
 
 2. set dpl to 3 . This will let the user interfere with memory management which will cause problems.
+
+3. It produces a general protection fault if we set dpl to 0 because we use int $3 in breakpoint. We have to set the dpl such that it enables user invoking by modifying the SETGATE for T_BRKPT.
+
+4.For protection.

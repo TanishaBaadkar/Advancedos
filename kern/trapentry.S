@@ -41,14 +41,38 @@
 	pushl $(num);							\
 	jmp _alltraps
 
-.text
+.data
+  .globl vectors
 
 /*
  * Lab 3: Your code here for generating entry points for the different traps.
  */
 
+vectors:
+ 
+ .long h0
+ .long h1
+.long h2
+ .long h3
+.long h4
+.long h5
+.long h6
+.long h7
+.long h8
+.long h9
+.long h10
+.long h11
+.long h12
+.long h13
+.long h14
+.long h15
+.long h16
+
+
   TRAPHANDLER_NOEC(h0,0)
+ 
   TRAPHANDLER_NOEC(h1,1)
+TRAPHANDLER_NOEC(h2,0)
   TRAPHANDLER_NOEC(h3,3)
   TRAPHANDLER_NOEC(h4,4)
   TRAPHANDLER_NOEC(h5,5)
@@ -61,6 +85,7 @@
   TRAPHANDLER(h12,12)
   TRAPHANDLER(h13,13)
   TRAPHANDLER(h14,14)
+TRAPHANDLER_NOEC(h15,15)
   TRAPHANDLER_NOEC(h16,16)
 
 

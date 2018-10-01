@@ -65,7 +65,7 @@ trap_init(void)
 	extern struct Segdesc gdt[];
 
 	// LAB 3: Your code here.
-          void h0();
+       /*  void h0();
           SETGATE(idt[0], 0, GD_KT, h0,0);
           void h1();
           SETGATE(idt[1], 0, GD_KT, h1,0);
@@ -94,7 +94,21 @@ trap_init(void)
           void h14();
           SETGATE(idt[14], 0, GD_KT, h14,0);
           void h16();
-          SETGATE(idt[16], 0, GD_KT, h16,0);
+          SETGATE(idt[16], 0, GD_KT, h16,0); */
+
+   extern uint32_t vectors[];
+
+    for(int i=0;i<=16;i++)
+{
+      switch(i) {
+      case T_BRKPT:
+      case T_SYSCALL:
+               SETGATE(idt[i], 0, GD_KT, vectors[i],3);
+               break;
+      default:
+              SETGATE(idt[i], 0, GD_KT, vectors[i],0);
+}
+} 
 
 
 
@@ -175,7 +189,23 @@ trap_dispatch(struct Trapframe *tf)
 {
 	// Handle processor exceptions.
 	// LAB 3: Your code here.
+           if(tf->tf_trapno== T_PGFLT)
+          {   page_fault_handler(tf);
+               return;
+           }
 
+          if(tf->tf_trapno== T_BRKPT)
+          {   monitor(tf);
+               return;
+           }
+
+          if (tf->tf_trapno == T_SYSCALL) {
+		//cprintf("SYSTEM CALL\n");
+tf->tf_regs.reg_eax = 
+	syscall(tf->tf_regs.reg_eax, tf->tf_regs.reg_edx, tf->tf_regs.reg_ecx,tf->tf_regs.reg_ebx, tf->tf_regs.reg_edi, tf->tf_regs.reg_esi);
+		return;
+	}
+           
 	// Unexpected trap: The user process or the kernel has a bug.
 	print_trapframe(tf);
 	if (tf->tf_cs == GD_KT)
