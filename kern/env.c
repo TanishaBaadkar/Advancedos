@@ -11,11 +11,16 @@
 #include <kern/pmap.h>
 #include <kern/trap.h>
 #include <kern/monitor.h>
+
 #include <kern/sched.h>
 #include <kern/cpu.h>
 #include <kern/spinlock.h>
 
+
+
 struct Env *envs = NULL;		// All environments
+struct Env *curenv = NULL;		// The current env
+
 static struct Env *env_free_list;	// Free environment list
 					// (linked by Env->env_link)
 
@@ -36,7 +41,9 @@ static struct Env *env_free_list;	// Free environment list
 // definition of gdt specifies the Descriptor Privilege Level (DPL)
 // of that descriptor: 0 for kernel and 3 for user.
 //
+
 struct Segdesc gdt[NCPU + 5] =
+
 {
 	// 0x0 - unused (always faults -- for trapping NULL far pointers)
 	SEG_NULL,
@@ -55,6 +62,9 @@ struct Segdesc gdt[NCPU + 5] =
 
 	// Per-CPU TSS descriptors (starting from GD_TSS0) are initialized
 	// in trap_init_percpu()
+
+	// 0x28 - tss, initialized in trap_init_percpu()
+
 	[GD_TSS0 >> 3] = SEG_NULL
 };
 
@@ -120,6 +130,14 @@ env_init(void)
 	// Set up envs array
 	// LAB 3: Your code here.
 
+        env_free_list = NULL;
+       for(int i= NENV-1; i>=0; i--) {
+        envs[i].env_status = ENV_FREE;
+        envs[i].env_id=0;
+        envs[i].env_link = env_free_list;
+        env_free_list= &envs[i];
+        } 
+
 	// Per-CPU part of the initialization
 	env_init_percpu();
 }
@@ -183,6 +201,16 @@ env_setup_vm(struct Env *e)
 
 	// LAB 3: Your code here.
 
+        e->env_pgdir = (pde_t *)(page2kva(p));
+        for(int i=0;i< UTOP/PTSIZE; ++i)
+                e->env_pgdir[i] =0;
+
+        for(int i= UTOP/PTSIZE; i<1024;++i)
+               e->env_pgdir[i] = kern_pgdir[i];
+    
+           p->pp_ref++;       
+
+
 	// UVPT maps the env's own page table read-only.
 	// Permissions: kernel R, user R
 	e->env_pgdir[PDX(UVPT)] = PADDR(e->env_pgdir) | PTE_P | PTE_U;
@@ -245,6 +273,7 @@ env_alloc(struct Env **newenv_store, envid_t parent_id)
 	e->env_tf.tf_cs = GD_UT | 3;
 	// You will set e->env_tf.tf_eip later.
 
+
 	// Enable interrupts while in user mode.
 	// LAB 4: Your code here.
 
@@ -253,6 +282,7 @@ env_alloc(struct Env **newenv_store, envid_t parent_id)
 
 	// Also clear the IPC receiving flag.
 	e->env_ipc_recving = 0;
+
 
 	// commit the allocation
 	env_free_list = e->env_link;
@@ -279,6 +309,16 @@ region_alloc(struct Env *e, void *va, size_t len)
 	//   'va' and 'len' values that are not page-aligned.
 	//   You should round va down, and round (va + len) up.
 	//   (Watch out for corner-cases!)
+
+
+          void* start= (void*)ROUNDDOWN(va,PGSIZE);
+          void* end= (void*)ROUNDUP(va+len,PGSIZE);
+         for( void* i=start;i<end;i=i+PGSIZE) {
+            struct PageInfo* p=page_alloc(0);
+              if(!p) panic("region alloc fail");
+               page_insert(e->env_pgdir, p, i,PTE_U| PTE_W);
+}
+
 }
 
 //
@@ -336,10 +376,40 @@ load_icode(struct Env *e, uint8_t *binary)
 
 	// LAB 3: Your code here.
 
+
+        struct Elf *ELFHDR = (struct Elf *) binary;
+	struct Proghdr *ph, *eph;
+
+	if (ELFHDR->e_magic != ELF_MAGIC)
+		panic("Not executable!");
+
+        ph= (struct Proghdr *) ((uint8_t *) ELFHDR + ELFHDR->e_phoff);
+        eph= ph+ ELFHDR->e_phnum;
+
+        lcr3(PADDR(e->env_pgdir));
+
+             for (; ph < eph; ph++)
+		if (ph->p_type == ELF_PROG_LOAD) {
+			region_alloc(e, (void *)ph->p_va, ph->p_memsz);
+			memset((void *)ph->p_va, 0, ph->p_memsz);
+			memcpy((void *)ph->p_va, binary+ph->p_offset, ph->p_filesz);
+		}
+
+           lcr3(PADDR(kern_pgdir));
+
+            e->env_tf.tf_eip = ELFHDR->e_entry;
+
+
 	// Now map one page for the program's initial stack
 	// at virtual address USTACKTOP - PGSIZE.
 
 	// LAB 3: Your code here.
+
+
+        
+        region_alloc(e, (void *) (USTACKTOP - PGSIZE), PGSIZE);
+         
+
 }
 
 //
@@ -353,6 +423,12 @@ void
 env_create(uint8_t *binary, enum EnvType type)
 {
 	// LAB 3: Your code here.
+
+         struct Env *env;
+           env_alloc(&env,0);
+           load_icode(env,binary);
+            env->env_type= type;
+
 }
 
 //
@@ -410,12 +486,15 @@ env_free(struct Env *e)
 
 //
 // Frees environment e.
+
 // If e was the current env, then runs a new environment (and does not return
 // to the caller).
-//
+
+
 void
 env_destroy(struct Env *e)
 {
+
 	// If e is currently running on other CPUs, we change its state to
 	// ENV_DYING. A zombie environment will be freed the next time
 	// it traps to the kernel.
@@ -430,6 +509,7 @@ env_destroy(struct Env *e)
 		curenv = NULL;
 		sched_yield();
 	}
+
 }
 
 
@@ -442,8 +522,10 @@ env_destroy(struct Env *e)
 void
 env_pop_tf(struct Trapframe *tf)
 {
+
 	// Record the CPU we are running on for user-space debugging
 	curenv->env_cpunum = cpunum();
+
 
 	__asm __volatile("movl %0,%%esp\n"
 		"\tpopal\n"
@@ -483,6 +565,15 @@ env_run(struct Env *e)
 
 	// LAB 3: Your code here.
 
-	panic("env_run not yet implemented");
+
+           if(e->env_status== ENV_RUNNING)
+                 e->env_status= ENV_RUNNABLE;
+            curenv=e;
+             e->env_status= ENV_RUNNING;
+             e->env_runs++;
+             lcr3(PADDR(e->env_pgdir));
+             env_pop_tf(&e->env_tf);
+
+	
 }
 

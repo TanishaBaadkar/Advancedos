@@ -16,7 +16,9 @@
 #include <inc/env.h>
 #include <inc/memlayout.h>
 #include <inc/syscall.h>
+
 #include <inc/trap.h>
+
 
 #define USED(x)		(void)(x)
 
@@ -32,8 +34,10 @@ extern const volatile struct PageInfo pages[];
 // exit.c
 void	exit(void);
 
+
 // pgfault.c
 void	set_pgfault_handler(void (*handler)(struct UTrapframe *utf));
+
 
 // readline.c
 char*	readline(const char *buf);
@@ -43,6 +47,7 @@ void	sys_cputs(const char *string, size_t len);
 int	sys_cgetc(void);
 envid_t	sys_getenvid(void);
 int	sys_env_destroy(envid_t);
+
 void	sys_yield(void);
 static envid_t sys_exofork(void);
 int	sys_env_set_status(envid_t env, int status);
@@ -76,6 +81,7 @@ envid_t	ipc_find_env(enum EnvType type);
 #define	PTE_SHARE	0x400
 envid_t	fork(void);
 envid_t	sfork(void);	// Challenge!
+
 
 
 

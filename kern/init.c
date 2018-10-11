@@ -6,16 +6,38 @@
 
 #include <kern/monitor.h>
 #include <kern/console.h>
+
 #include <kern/pmap.h>
 #include <kern/kclock.h>
 #include <kern/env.h>
 #include <kern/trap.h>
+
 #include <kern/sched.h>
 #include <kern/picirq.h>
 #include <kern/cpu.h>
 #include <kern/spinlock.h>
 
 static void boot_aps(void);
+
+
+
+#include <kern/pmap.h>
+#include <kern/kclock.h>
+
+
+
+// Test the stack backtrace function (lab 1 only)
+void
+test_backtrace(int x)
+{
+	cprintf("entering test_backtrace %d\n", x);
+	if (x > 0)
+		test_backtrace(x-1);
+	else
+		mon_backtrace(0, 0, 0);
+	cprintf("leaving test_backtrace %d\n", x);
+}
+
 
 
 void
@@ -34,12 +56,14 @@ i386_init(void)
 
 	cprintf("6828 decimal is %o octal!\n", 6828);
 
+
 	// Lab 2 memory management initialization functions
 	mem_init();
 
 	// Lab 3 user environment initialization functions
 	env_init();
 	trap_init();
+
 
 	// Lab 4 multiprocessor initialization functions
 	mp_init();
@@ -54,11 +78,13 @@ i386_init(void)
 	// Starting non-boot CPUs
 	boot_aps();
 
+
 #if defined(TEST)
 	// Don't touch -- used by grading script!
 	ENV_CREATE(TEST, ENV_TYPE_USER);
 #else
 	// Touch all you want.
+
 	ENV_CREATE(user_primes, ENV_TYPE_USER);
 #endif // TEST*
 
@@ -121,6 +147,29 @@ mp_main(void)
 	for (;;);
 }
 
+
+	ENV_CREATE(user_hello, ENV_TYPE_USER);
+#endif // TEST*
+
+	// We only have one user environment for now, so just run it.
+	env_run(&envs[0]);
+
+
+	// Lab 2 memory management initialization functions
+	mem_init();
+
+	// Test the stack backtrace function (lab 1 only)
+	test_backtrace(5);
+
+
+	// Drop into the kernel monitor.
+	while (1)
+		monitor(NULL);
+
+}
+
+
+
 /*
  * Variable panicstr contains argument to first call to panic; used as flag
  * to indicate that the kernel has already called panic.
@@ -144,7 +193,11 @@ _panic(const char *file, int line, const char *fmt,...)
 	__asm __volatile("cli; cld");
 
 	va_start(ap, fmt);
+
 	cprintf("kernel panic on CPU %d at %s:%d: ", cpunum(), file, line);
+
+	cprintf("kernel panic at %s:%d: ", file, line);
+
 	vcprintf(fmt, ap);
 	cprintf("\n");
 	va_end(ap);
