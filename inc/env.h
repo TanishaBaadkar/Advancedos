@@ -68,8 +68,7 @@ struct Env {
 	int env_ipc_perm;		// Perm of page mapping received
 
 
-	// Address space
-	pde_t *env_pgdir;		// Kernel virtual address of page dir
+	
 
 };
 

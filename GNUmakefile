@@ -139,18 +139,16 @@ include lib/Makefrag
 include user/Makefrag
 
 
-<<<<<<< HEAD
+
 CPUS ?= 1
-=======
->>>>>>> lab3
+
 
 QEMUOPTS = -hda $(OBJDIR)/kern/kernel.img -serial mon:stdio -gdb tcp::$(GDBPORT)
 QEMUOPTS += $(shell if $(QEMU) -nographic -help | grep -q '^-D '; then echo '-D qemu.log'; fi)
 IMAGES = $(OBJDIR)/kern/kernel.img
-<<<<<<< HEAD
+
 QEMUOPTS += -smp $(CPUS)
-=======
->>>>>>> lab3
+
 QEMUOPTS += $(QEMUEXTRA)
 
 .gdbinit: .gdbinit.tmpl
@@ -302,10 +300,7 @@ myapi.key:
 handin-prep:
 	@./handin-prep
 
-<<<<<<< HEAD
-=======
 
->>>>>>> lab3
 # For test runs
 
 prep-%:
@@ -323,10 +318,7 @@ run-%-nox: prep-% pre-qemu
 run-%: prep-% pre-qemu
 	$(QEMU) $(QEMUOPTS)
 
-<<<<<<< HEAD
-=======
 
->>>>>>> lab3
 # This magic automatically generates makefile dependencies
 # for header files included from C source files we compile,
 # and keeps those dependencies up-to-date every time we recompile.

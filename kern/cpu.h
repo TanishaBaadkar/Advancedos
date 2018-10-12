@@ -1,4 +1,3 @@
-
 #ifndef JOS_INC_CPU_H
 #define JOS_INC_CPU_H
 

@@ -21,11 +21,6 @@ static void boot_aps(void);
 
 
 
-#include <kern/pmap.h>
-#include <kern/kclock.h>
-
-
-
 // Test the stack backtrace function (lab 1 only)
 void
 test_backtrace(int x)
@@ -74,7 +69,7 @@ i386_init(void)
 
 	// Acquire the big kernel lock before waking up APs
 	// Your code here:
-
+        lock_kernel();
 	// Starting non-boot CPUs
 	boot_aps();
 
@@ -85,7 +80,10 @@ i386_init(void)
 #else
 	// Touch all you want.
 
-	ENV_CREATE(user_primes, ENV_TYPE_USER);
+	//ENV_CREATE(user_primes, ENV_TYPE_USER);
+          ENV_CREATE(user_yield, ENV_TYPE_USER);
+          ENV_CREATE(user_yield, ENV_TYPE_USER);
+          ENV_CREATE(user_yield, ENV_TYPE_USER);
 #endif // TEST*
 
 	// Schedule and run the first user environment!
@@ -142,31 +140,14 @@ mp_main(void)
 	// only one CPU can enter the scheduler at a time!
 	//
 	// Your code here:
-
+          lock_kernel();
+          sched_yield();
 	// Remove this after you finish Exercise 4
-	for (;;);
+	//for (;;);
 }
 
 
-	ENV_CREATE(user_hello, ENV_TYPE_USER);
-#endif // TEST*
-
-	// We only have one user environment for now, so just run it.
-	env_run(&envs[0]);
-
-
-	// Lab 2 memory management initialization functions
-	mem_init();
-
-	// Test the stack backtrace function (lab 1 only)
-	test_backtrace(5);
-
-
-	// Drop into the kernel monitor.
-	while (1)
-		monitor(NULL);
-
-}
+	
 
 
 

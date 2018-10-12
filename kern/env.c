@@ -19,7 +19,7 @@
 
 
 struct Env *envs = NULL;		// All environments
-struct Env *curenv = NULL;		// The current env
+//struct Env *curenv = NULL;		// The current env
 
 static struct Env *env_free_list;	// Free environment list
 					// (linked by Env->env_link)
@@ -132,7 +132,7 @@ env_init(void)
 
         env_free_list = NULL;
        for(int i= NENV-1; i>=0; i--) {
-        envs[i].env_status = ENV_FREE;
+       // envs[i].env_status = ENV_FREE;
         envs[i].env_id=0;
         envs[i].env_link = env_free_list;
         env_free_list= &envs[i];
@@ -201,14 +201,17 @@ env_setup_vm(struct Env *e)
 
 	// LAB 3: Your code here.
 
-        e->env_pgdir = (pde_t *)(page2kva(p));
+      /*  e->env_pgdir = (pde_t *)(page2kva(p));
         for(int i=0;i< UTOP/PTSIZE; ++i)
                 e->env_pgdir[i] =0;
 
         for(int i= UTOP/PTSIZE; i<1024;++i)
-               e->env_pgdir[i] = kern_pgdir[i];
+               e->env_pgdir[i] = kern_pgdir[i]; */
     
-           p->pp_ref++;       
+           p->pp_ref++; 
+           e->env_pgdir = (pde_t *)page2kva(p);
+           memcpy(e->env_pgdir,kern_pgdir,PGSIZE);
+               
 
 
 	// UVPT maps the env's own page table read-only.
@@ -565,13 +568,15 @@ env_run(struct Env *e)
 
 	// LAB 3: Your code here.
 
-
-           if(e->env_status== ENV_RUNNING)
-                 e->env_status= ENV_RUNNABLE;
+        if(curenv!=e) {
+           if(curenv && curenv->env_status== ENV_RUNNING)
+                 curenv->env_status= ENV_RUNNABLE;
             curenv=e;
              e->env_status= ENV_RUNNING;
              e->env_runs++;
              lcr3(PADDR(e->env_pgdir));
+           }
+           unlock_kernel();
              env_pop_tf(&e->env_tf);
 
 	

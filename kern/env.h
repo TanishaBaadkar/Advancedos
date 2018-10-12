@@ -4,16 +4,10 @@
 #define JOS_KERN_ENV_H
 
 #include <inc/env.h>
-
 #include <kern/cpu.h>
 
-		
-#define curenv (thiscpu->cpu_env)		// Current environment
-
-
-extern struct Env *envs;		// All environments
-extern struct Env *curenv;		// Current environment
-
+extern struct Env *envs;	// All environments
+#define curenv (thiscpu->cpu_env)	// Current environment
 extern struct Segdesc gdt[];
 
 void	env_init(void);
@@ -32,11 +26,11 @@ void	env_pop_tf(struct Trapframe *tf) __attribute__((noreturn));
 // ENV_CREATE because of the C pre-processor's argument prescan rule.
 #define ENV_PASTE3(x, y, z) x ## y ## z
 
-#define ENV_CREATE(x, type)						\
-	do {								\
-		extern uint8_t ENV_PASTE3(_binary_obj_, x, _start)[];	\
-		env_create(ENV_PASTE3(_binary_obj_, x, _start),		\
-			   type);					\
-	} while (0)
+#define ENV_CREATE(x, type)\
+do {\
+extern uint8_t ENV_PASTE3(_binary_obj_, x, _start)[];\
+env_create(ENV_PASTE3(_binary_obj_, x, _start),\
+type);\
+} while (0)
 
 #endif // !JOS_KERN_ENV_H
