@@ -22,7 +22,7 @@ static void boot_aps(void);
 
 
 // Test the stack backtrace function (lab 1 only)
-void
+/*void
 test_backtrace(int x)
 {
 	cprintf("entering test_backtrace %d\n", x);
@@ -31,7 +31,7 @@ test_backtrace(int x)
 	else
 		mon_backtrace(0, 0, 0);
 	cprintf("leaving test_backtrace %d\n", x);
-}
+}*/
 
 
 
@@ -80,10 +80,10 @@ i386_init(void)
 #else
 	// Touch all you want.
 
-	//ENV_CREATE(user_primes, ENV_TYPE_USER);
-          ENV_CREATE(user_yield, ENV_TYPE_USER);
-          ENV_CREATE(user_yield, ENV_TYPE_USER);
-          ENV_CREATE(user_yield, ENV_TYPE_USER);
+	ENV_CREATE(user_faultalloc, ENV_TYPE_USER);
+          //ENV_CREATE(user_yield, ENV_TYPE_USER);
+          //ENV_CREATE(user_yield, ENV_TYPE_USER);
+          //ENV_CREATE(user_yield, ENV_TYPE_USER);
 #endif // TEST*
 
 	// Schedule and run the first user environment!

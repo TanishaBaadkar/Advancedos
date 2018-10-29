@@ -132,7 +132,7 @@ env_init(void)
 
         env_free_list = NULL;
        for(int i= NENV-1; i>=0; i--) {
-       // envs[i].env_status = ENV_FREE;
+        envs[i].env_status = ENV_FREE;
         envs[i].env_id=0;
         envs[i].env_link = env_free_list;
         env_free_list= &envs[i];
@@ -201,16 +201,16 @@ env_setup_vm(struct Env *e)
 
 	// LAB 3: Your code here.
 
-      /*  e->env_pgdir = (pde_t *)(page2kva(p));
+        e->env_pgdir = (pde_t *)(page2kva(p));
         for(int i=0;i< UTOP/PTSIZE; ++i)
                 e->env_pgdir[i] =0;
 
         for(int i= UTOP/PTSIZE; i<1024;++i)
-               e->env_pgdir[i] = kern_pgdir[i]; */
+               e->env_pgdir[i] = kern_pgdir[i]; 
     
            p->pp_ref++; 
-           e->env_pgdir = (pde_t *)page2kva(p);
-           memcpy(e->env_pgdir,kern_pgdir,PGSIZE);
+           /*e->env_pgdir = (pde_t *)page2kva(p);
+           memcpy(e->env_pgdir,kern_pgdir,PGSIZE); */
                
 
 
@@ -279,6 +279,7 @@ env_alloc(struct Env **newenv_store, envid_t parent_id)
 
 	// Enable interrupts while in user mode.
 	// LAB 4: Your code here.
+        e->env_tf.tf_eflags |= FL_IF;
 
 	// Clear the page fault handler until user installs one.
 	e->env_pgfault_upcall = 0;
@@ -427,7 +428,7 @@ env_create(uint8_t *binary, enum EnvType type)
 {
 	// LAB 3: Your code here.
 
-         struct Env *env;
+         struct Env *env = NULL;
            env_alloc(&env,0);
            load_icode(env,binary);
             env->env_type= type;
@@ -568,16 +569,22 @@ env_run(struct Env *e)
 
 	// LAB 3: Your code here.
 
-        if(curenv!=e) {
-           if(curenv && curenv->env_status== ENV_RUNNING)
-                 curenv->env_status= ENV_RUNNABLE;
-            curenv=e;
-             e->env_status= ENV_RUNNING;
-             e->env_runs++;
-             lcr3(PADDR(e->env_pgdir));
-           }
-           unlock_kernel();
-             env_pop_tf(&e->env_tf);
+        if(e == NULL)
+		panic("env_run: invalid environment\n");
+	if(curenv != e && curenv != NULL) {
+		if(curenv->env_status == ENV_RUNNING)
+			curenv->env_status = ENV_RUNNABLE;
+	}
+	curenv = e;
+	curenv->env_status = ENV_RUNNING;
+	curenv->env_runs++;
+	lcr3(PADDR(curenv->env_pgdir));
+
+	unlock_kernel();
+
+	env_pop_tf(&(curenv->env_tf));
+	
+
 
 	
 }
