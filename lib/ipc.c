@@ -23,7 +23,6 @@ int32_t
 ipc_recv(envid_t *from_env_store, void *pg, int *perm_store)
 {
 	// LAB 4: Your code here.
-    cprintf("happening??");
 	if (pg == NULL)
 		pg = (void *)UTOP;
 	int r = sys_ipc_recv(pg);
@@ -53,7 +52,6 @@ void
 ipc_send(envid_t to_env, uint32_t val, void *pg, int perm)
 {
 	// LAB 4: Your code here.
-   cprintf("and this??");
 	int r;
 	if (pg == NULL)
 		pg = (void *)UTOP;

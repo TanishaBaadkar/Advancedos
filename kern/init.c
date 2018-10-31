@@ -80,7 +80,7 @@ i386_init(void)
 #else
 	// Touch all you want.
 
-	ENV_CREATE(user_faultalloc, ENV_TYPE_USER);
+	ENV_CREATE(user_primes, ENV_TYPE_USER);
           //ENV_CREATE(user_yield, ENV_TYPE_USER);
           //ENV_CREATE(user_yield, ENV_TYPE_USER);
           //ENV_CREATE(user_yield, ENV_TYPE_USER);
@@ -143,7 +143,7 @@ mp_main(void)
           lock_kernel();
           sched_yield();
 	// Remove this after you finish Exercise 4
-	//for (;;);
+	for (;;);
 }
 
 
@@ -177,7 +177,7 @@ _panic(const char *file, int line, const char *fmt,...)
 
 	cprintf("kernel panic on CPU %d at %s:%d: ", cpunum(), file, line);
 
-	cprintf("kernel panic at %s:%d: ", file, line);
+	//cprintf("kernel panic at %s:%d: ", file, line);
 
 	vcprintf(fmt, ap);
 	cprintf("\n");

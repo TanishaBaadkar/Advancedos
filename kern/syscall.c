@@ -315,45 +315,28 @@ static int
 sys_ipc_try_send(envid_t envid, uint32_t value, void *srcva, unsigned perm)
 {
 	// LAB 4: Your code here.
- cprintf("problem?");
-	int r;
 	struct Env *e;
-	struct PageInfo *pp;
-	pte_t *ptep;
-
-	if ((r = envid2env(envid, &e, 0)) < 0)
-		return r;
-
-	if (e->env_ipc_recving == 0)
-		return -E_IPC_NOT_RECV;
-
-	pp = page_lookup(curenv->env_pgdir, srcva, &ptep);
-
-	if (((uint32_t)srcva < UTOP) && (((uint32_t)srcva & 0xFFF) != 0))
-		return -E_INVAL;
-
-	if (((uint32_t)srcva < UTOP) && ((perm | PTE_SYSCALL) != PTE_SYSCALL))
-		return -E_INVAL;
-
-	if (((uint32_t)srcva < UTOP) && (pp == NULL))
-		return -E_INVAL;
-
-
-	if (!((*ptep) & PTE_W) && (perm & PTE_W))
-		return -E_INVAL;
-
-	e->env_ipc_perm = 0;
-	if (((uint32_t)srcva < UTOP) && ((uint32_t)e->env_ipc_dstva < UTOP))
-	{
-		if ((r = page_insert(e->env_pgdir, pp, e->env_ipc_dstva, perm)) < 0)
-			return r;
-		e->env_ipc_perm = perm;
-
+	int ret = envid2env(envid, &e, 0);
+	if (ret) return ret;//bad env
+	if (!e->env_ipc_recving) return -E_IPC_NOT_RECV;
+	if (srcva < (void*)UTOP) {
+		pte_t *pte;
+		struct PageInfo *pg = page_lookup(curenv->env_pgdir, srcva, &pte);
+		if (!pg) return -E_INVAL;
+		if ((*pte & perm & 7) != (perm & 7)) return -E_INVAL;
+		if ((perm & PTE_W) && !(*pte & PTE_W)) return -E_INVAL;
+		if (srcva != ROUNDDOWN(srcva, PGSIZE)) return -E_INVAL;
+		if (e->env_ipc_dstva < (void*)UTOP) {
+			ret = page_insert(e->env_pgdir, pg, e->env_ipc_dstva, perm);
+			if (ret) return ret;
+			e->env_ipc_perm = perm;
+		}
 	}
 	e->env_ipc_recving = 0;
-	e->env_ipc_value = value;
 	e->env_ipc_from = curenv->env_id;
+	e->env_ipc_value = value; 
 	e->env_status = ENV_RUNNABLE;
+	e->env_tf.tf_regs.reg_eax = 0;
 	return 0;
 }
 
@@ -372,7 +355,6 @@ static int
 sys_ipc_recv(void *dstva)
 {
 	// LAB 4: Your code here.
-cprintf("problem2?");
 	if (((uint32_t)dstva < UTOP) && (((uint32_t)dstva & 0xFFF) != 0))
 		return -E_INVAL;
 
