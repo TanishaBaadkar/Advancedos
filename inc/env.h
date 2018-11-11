@@ -41,7 +41,9 @@ enum {
 // Special environment types
 enum EnvType {
 	ENV_TYPE_USER = 0,
+
 	ENV_TYPE_FS,		// File system server
+
 };
 
 struct Env {
@@ -52,6 +54,7 @@ struct Env {
 	enum EnvType env_type;		// Indicates special system environments
 	unsigned env_status;		// Status of the environment
 	uint32_t env_runs;		// Number of times environment has run
+
 	int env_cpunum;			// The CPU that the env is running on
 
 	// Address space
@@ -66,6 +69,7 @@ struct Env {
 	uint32_t env_ipc_value;		// Data value sent to us
 	envid_t env_ipc_from;		// envid of the sender
 	int env_ipc_perm;		// Perm of page mapping received
+
 };
 
 #endif // !JOS_INC_ENV_H

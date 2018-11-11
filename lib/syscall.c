@@ -61,6 +61,7 @@ sys_getenvid(void)
 	 return syscall(SYS_getenvid, 0, 0, 0, 0, 0, 0);
 }
 
+
 void
 sys_yield(void)
 {
@@ -116,4 +117,5 @@ sys_ipc_recv(void *dstva)
 {
 	return syscall(SYS_ipc_recv, 1, (uint32_t)dstva, 0, 0, 0, 0);
 }
+
 

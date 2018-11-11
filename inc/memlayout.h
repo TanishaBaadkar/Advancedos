@@ -138,13 +138,18 @@
 // The location of the user-level STABS data structure
 #define USTABDATA	(PTSIZE / 2)
 
+
+
 // Physical address of startup code for non-boot CPUs (APs)
 #define MPENTRY_PADDR	0x7000
+
+
 
 #ifndef __ASSEMBLER__
 
 typedef uint32_t pte_t;
 typedef uint32_t pde_t;
+
 
 #if JOS_USER
 /*
@@ -186,6 +191,7 @@ struct PageInfo {
 
 	uint16_t pp_ref;
 };
+
 
 #endif /* !__ASSEMBLER__ */
 #endif /* !JOS_INC_MEMLAYOUT_H */
