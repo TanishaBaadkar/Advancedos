@@ -762,7 +762,7 @@ check_page_free_list(bool only_low_memory)
 	// if there's a page that shouldn't be on the free list,
 	// try to make sure it eventually causes trouble.
 	for (pp = page_free_list; pp; pp = pp->pp_link)
-=
+
 	{
 //		cprintf("we entered! CAUSES TROUBLE!!\n");
 		if (PDX(page2pa(pp)) < pdx_limit)
