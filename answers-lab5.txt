@@ -1,0 +1,1 @@
+1. No, since the file system server works as user level environment , every time we switch from one environment to another we push EFLAGS into trapframe by hardware and it is restored by iret in env_pop_tf

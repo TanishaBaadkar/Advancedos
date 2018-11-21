@@ -126,7 +126,9 @@ fd_close(struct Fd *fd, bool must_exist)
 static struct Dev *devtab[] =
 {
 	&devfile,
+
 	&devsock,
+
 	&devpipe,
 	&devcons,
 	0

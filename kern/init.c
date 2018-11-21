@@ -6,18 +6,23 @@
 
 #include <kern/monitor.h>
 #include <kern/console.h>
+
 #include <kern/pmap.h>
 #include <kern/kclock.h>
 #include <kern/env.h>
 #include <kern/trap.h>
+
 #include <kern/sched.h>
 #include <kern/picirq.h>
 #include <kern/cpu.h>
 #include <kern/spinlock.h>
+
 #include <kern/time.h>
 #include <kern/pci.h>
 
+
 static void boot_aps(void);
+
 
 
 void
@@ -36,6 +41,7 @@ i386_init(void)
 
 	cprintf("6828 decimal is %o octal!\n", 6828);
 
+
 	// Lab 2 memory management initialization functions
 	mem_init();
 
@@ -50,12 +56,17 @@ i386_init(void)
 	// Lab 4 multitasking initialization functions
 	pic_init();
 
+
 	// Lab 6 hardware initialization functions
 	time_init();
 	pci_init();
 
+	
+
 	// Acquire the big kernel lock before waking up APs
 	// Your code here:
+ lock_kernel();
+
 
 	// Starting non-boot CPUs
 	boot_aps();
@@ -63,21 +74,25 @@ i386_init(void)
 	// Start fs.
 	ENV_CREATE(fs_fs, ENV_TYPE_FS);
 
+
 #if !defined(TEST_NO_NS)
 	// Start ns.
 	ENV_CREATE(net_ns, ENV_TYPE_NS);
 #endif
+
 
 #if defined(TEST)
 	// Don't touch -- used by grading script!
 	ENV_CREATE(TEST, ENV_TYPE_USER);
 #else
 	// Touch all you want.
+
 	ENV_CREATE(user_icode, ENV_TYPE_USER);
 #endif // TEST*
 
 	// Should not be necessary - drains keyboard because interrupt has given up.
 	kbd_intr();
+
 
 	// Schedule and run the first user environment!
 	sched_yield();
@@ -134,9 +149,13 @@ mp_main(void)
 	//
 	// Your code here:
 
-	// Remove this after you finish Exercise 4
-	for (;;);
+          lock_kernel();
+          sched_yield();
+
+
 }
+
+
 
 /*
  * Variable panicstr contains argument to first call to panic; used as flag
@@ -161,7 +180,13 @@ _panic(const char *file, int line, const char *fmt,...)
 	__asm __volatile("cli; cld");
 
 	va_start(ap, fmt);
+
+
+
 	cprintf("kernel panic on CPU %d at %s:%d: ", cpunum(), file, line);
+
+	
+
 	vcprintf(fmt, ap);
 	cprintf("\n");
 	va_end(ap);

@@ -1,0 +1,7 @@
+1. because mpentry.S is loaded by the bootloader as a part of the kernel but it has to be loaded by bootstrap CPU to 0x7000. MPBOOTPHYS is used to calculate the absolute address
+
+2. when an interupt occurs the hardware automatically pushes tf_err, tf_eip, tf_cs, tf_padding3 and tf_eflags before checking the lock . this is why we need seperate kernel stacks
+
+3. because the kernel part of all environments are identical
+
+4. in trap.c , curenv->env_tf= *tf
