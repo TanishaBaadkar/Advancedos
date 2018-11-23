@@ -13,7 +13,6 @@
 #include <kern/picirq.h>
 #include <kern/cpu.h>
 #include <kern/spinlock.h>
-
 #include <kern/time.h>
 
 
@@ -202,57 +201,69 @@ print_regs(struct PushRegs *regs)
 static void
 trap_dispatch(struct Trapframe *tf)
 {
-	// Handle processor exceptions.
-	// LAB 3: Your code here.
-
-
-
-	int32_t ret_code;
-	switch (tf->tf_trapno) {
-		case T_BRKPT:
-			monitor(tf);
-			return;
-		case T_PGFLT:
-			page_fault_handler(tf);
-			return;
-		case T_SYSCALL:
-			ret_code = syscall(
-					tf->tf_regs.reg_eax,
-					tf->tf_regs.reg_edx,
-					tf->tf_regs.reg_ecx,
-					tf->tf_regs.reg_ebx,
-					tf->tf_regs.reg_edi,
-					tf->tf_regs.reg_esi);
-			tf->tf_regs.reg_eax = ret_code;
-			return;
-		// Handle spurious interrupts
-		// The hardware sometimes raises these because of noise on the
-		// IRQ line or other reasons. We don't care.
-		case IRQ_OFFSET + IRQ_SPURIOUS:
-			cprintf("Spurious interrupt on irq 7\n");
-			print_trapframe(tf);
-			return;
-		// Handle clock interrupts. Don't forget to acknowledge the
-		// interrupt using lapic_eoi() before calling the scheduler!
-		case IRQ_OFFSET + IRQ_TIMER:
-			lapic_eoi();
-			sched_yield();
-			return ;
-
-                case IRQ_OFFSET + IRQ_KBD:
-			lapic_eoi();
-			kbd_intr();
-			return;
-		case IRQ_OFFSET + IRQ_SERIAL:
-			lapic_eoi();
-			serial_intr();
-		default:
-			break;
+	// Handle spurious interrupts
+	// The hardware sometimes raises these because of noise on the
+	// IRQ line or other reasons. We don't care.
+	if (tf->tf_trapno == IRQ_OFFSET + IRQ_SPURIOUS) {
+		cprintf("Spurious interrupt on irq 7\n");
+		print_trapframe(tf);
+		return;
 	}
 
+	if (tf->tf_trapno == IRQ_OFFSET + IRQ_SERIAL) {
+		serial_intr();
+		return;
+	}
 
-	
+	if(tf->tf_trapno == T_PGFLT){
+		page_fault_handler(tf);
+		return;
+	}
 
+	if(tf->tf_trapno == T_BRKPT){
+		monitor(tf);
+		return;
+	}
+
+	if(tf->tf_trapno == T_SYSCALL) {
+		if ((tf->tf_regs.reg_eax = syscall(tf->tf_regs.reg_eax,
+										   tf->tf_regs.reg_edx,
+										   tf->tf_regs.reg_ecx,
+										   tf->tf_regs.reg_ebx,
+										   tf->tf_regs.reg_edi,
+										   tf->tf_regs.reg_esi))<0)
+			panic("Invalid syscall");
+		return ;
+	}
+
+	// Handle clock interrupts. Don't forget to acknowledge the
+	// interrupt using lapic_eoi() before calling the scheduler!
+	// LAB 4: Your code here.
+
+	if (tf->tf_trapno == IRQ_OFFSET + IRQ_TIMER)
+	{
+	// Add time tick increment to clock interrupts.
+	// Be careful! In multiprocessors, clock interrupts are
+	// triggered on every CPU.
+	// LAB 6: Your code here.
+		lapic_eoi();
+
+		if (cpunum() == 0)
+		{
+			time_tick();
+		}
+
+		sched_yield();
+		return;
+	}
+
+	// Handle keyboard and serial interrupts.
+	// LAB 5: Your code here.
+
+	if (tf->tf_trapno == IRQ_OFFSET + IRQ_KBD) {
+		kbd_intr();
+		return;
+	}
 
 	// Unexpected trap: The user process or the kernel has a bug.
 	print_trapframe(tf);

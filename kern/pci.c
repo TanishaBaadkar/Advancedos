@@ -28,8 +28,10 @@ struct pci_driver pci_attach_class[] = {
 	{ 0, 0, 0 },
 };
 
-// pci_attach_vendor matches the vendor ID and device ID of a PCI device
+// pci_attach_vendor matches the vendor ID and device ID of a PCI device. key1
+// and key2 should be the vendor ID and device ID respectively
 struct pci_driver pci_attach_vendor[] = {
+	{ 0x8086, 0x100e, e1000_attach},
 	{ 0, 0, 0 },
 };
 
@@ -66,7 +68,7 @@ pci_conf_write(struct pci_func *f, uint32_t off, uint32_t v)
 
 static int __attribute__((warn_unused_result))
 pci_attach_match(uint32_t key1, uint32_t key2,
-		 struct pci_driver *list, struct pci_func *pcif)
+		struct pci_driver *list, struct pci_func *pcif)
 {
 	uint32_t i;
 
@@ -89,11 +91,11 @@ pci_attach(struct pci_func *f)
 {
 	return
 		pci_attach_match(PCI_CLASS(f->dev_class),
-				 PCI_SUBCLASS(f->dev_class),
-				 &pci_attach_class[0], f) ||
+				PCI_SUBCLASS(f->dev_class),
+				&pci_attach_class[0], f) ||
 		pci_attach_match(PCI_VENDOR(f->dev_id),
-				 PCI_PRODUCT(f->dev_id),
-				 &pci_attach_vendor[0], f);
+				PCI_PRODUCT(f->dev_id),
+				&pci_attach_vendor[0], f);
 }
 
 static const char *pci_class[] =
@@ -253,4 +255,5 @@ pci_init(void)
 	memset(&root_bus, 0, sizeof(root_bus));
 
 	return pci_scan_bus(&root_bus);
+
 }

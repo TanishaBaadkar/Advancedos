@@ -21,31 +21,7 @@
  *   void NAME();
  * where NAME is the argument passed to TRAPHANDLER.
  */
-<<<<<<< HEAD
 #define TRAPHANDLER(name, num)						\
-	.globl name;		/* define global symbol for 'name' */	\
-	.type name, @function;	/* symbol type is function */		\
-	.align 2;		/* align function definition */		\
-	name:			/* function starts here */		\
-	pushl $(num);							\
-	jmp _alltraps
-
-/* Use TRAPHANDLER_NOEC for traps where the CPU doesn't push an error code.
- * It pushes a 0 in place of the error code, so the trap frame has the same
- * format in either case.
- */
-#define TRAPHANDLER_NOEC(name, num)					\
-	.globl name;							\
-	.type name, @function;						\
-	.align 2;							\
-	name:								\
-	pushl $0;							\
-	pushl $(num);							\
-	jmp _alltraps
-
-.text
-=======
- #define TRAPHANDLER(name, num)						\
 .data;  \
         .long name; \
     .text;  \
@@ -60,6 +36,24 @@
     	jmp _alltraps
 
 
+/* Use TRAPHANDLER_NOEC for traps where the CPU doesn't push an error code.
+ * It pushes a 0 in place of the error code, so the trap frame has the same
+ * format in either case.
+ */
+#define TRAPHANDLER_NOEC(name, num)					\
+	.globl name;							\
+	.type name, @function;						\
+	.align 2;							\
+	name:								\
+	pushl $0;							\
+	pushl $(num);							\
+	jmp _alltraps
+
+
+
+ 
+
+
 
 .data
     .globl  vectors
@@ -67,14 +61,13 @@
 vectors:
 
 
->>>>>>> lab5
+
 
 /*
  * Lab 3: Your code here for generating entry points for the different traps.
  */
 
-<<<<<<< HEAD
-=======
+
     TRAPHANDLER(vector0, 0)
     TRAPHANDLER(vector1, 1)
     TRAPHANDLER(vector2, 2)
@@ -125,15 +118,14 @@ vectors:
     TRAPHANDLER(vector47, 47)
     TRAPHANDLER(vector48, 48)
 
->>>>>>> lab5
+
 
 
 /*
  * Lab 3: Your code here for _alltraps
  */
 
-<<<<<<< HEAD
-=======
+
 
 _alltraps:
     pushl %ds;
@@ -146,4 +138,4 @@ _alltraps:
     pushl %esp;
     call trap;
 
->>>>>>> lab5
+
