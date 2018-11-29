@@ -1,0 +1,5 @@
+1. error is sent to the user and he has to retransmit.
+
+2.an error is sent and the user can retry later.
+
+3. 2 and a half weeks
